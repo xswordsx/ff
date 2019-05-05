@@ -1,6 +1,7 @@
 mod colors;
 
 use chrono::DateTime;
+use getopts;
 use std::io::{self, BufRead};
 use yaml_rust::{YamlEmitter, YamlLoader};
 
@@ -71,7 +72,44 @@ fn severity_fmt(s: &str) -> String {
     }
 }
 
+fn print_usage(program: &str, opts: getopts::Options) {
+    let short_name = std::path::Path::new(program)
+        .file_name()
+        .unwrap()
+        .to_str()
+        .unwrap();
+    let brief = format!("Usage: {} [options]", short_name);
+    print!("{}", opts.usage(&brief));
+}
+
 fn main() {
+    let args: Vec<String> = std::env::args().collect();
+    let program = args[0].clone();
+
+    let mut opts = getopts::Options::new();
+    opts.optopt("o", "", "set output mode", "([normal]|short)");
+    opts.optflag("h", "help", "print this help menu");
+    let matches = match opts.parse(&args[1..]) {
+        Ok(m) => m,
+        Err(f) => panic!(f.to_string()),
+    };
+    if matches.opt_present("h") {
+        print_usage(&program, opts);
+        return;
+    }
+    let output_mode: String;
+    if matches.opt_present("o") {
+        output_mode = match matches.opt_str("o") {
+            Some(x) => x,
+            None => String::from("normal"),
+        };
+
+        if output_mode != "normal" && output_mode != "short" {
+            println!("unsupported output mode '{}'", output_mode);
+            print_usage(&program, opts);
+            return;
+        }
+    }
     // TODO: Support --short & --version & --help flags
     let stdin = io::stdin();
     for line in stdin.lock().lines() {
