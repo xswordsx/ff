@@ -1,8 +1,9 @@
-// Wraps the str s into the passed down color. If the color
-// does not match any color - return it as-is.
-//
-// Takes into account the CLICOLOR, CLICOLOR_FORCE and NO_COLOR
-// variables.
+/// Wraps `s` into the passed down color. If the color does
+/// not match any color - return it as-is.
+///
+/// Takes into account the `CLICOLOR`, `CLICOLOR_FORCE` and
+/// `NO_COLOR` variables.
+///
 pub fn colorize(s: &str, color: &str) -> std::string::String {
     if !should_color() {
         return String::from(s);

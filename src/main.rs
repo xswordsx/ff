@@ -62,6 +62,7 @@ fn format_line(mut obj: json::JsonValue) -> String {
 fn severity_fmt(s: &str) -> String {
     // TODO: Support short version
     match s {
+        "trace" => return format!("[{}]", colors::colorize("TRACE", "")),
         "debug" => return format!("[{}]", colors::colorize("DEBUG", "bold")),
         "info" => return format!("[{} ]", colors::colorize("INFO", "green")),
         "warn" => return format!("[{} ]", colors::colorize("WARN", "yellow")),
