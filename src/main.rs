@@ -26,9 +26,9 @@ fn format_line(mut obj: json::JsonValue) -> String {
     }
 
     if obj.has_key("component") {
-        let svrty = severity_fmt(obj["component"].as_str().unwrap());
+        let cmpt = severity_fmt(obj["component"].as_str().unwrap());
         result.push(' ');
-        result.push_str(colors::colorize(svrty.as_str(), "cyan").as_str());
+        result.push_str(colors::colorize(cmpt.as_str(), "cyan").as_str());
     }
 
     if obj.has_key("message") {
