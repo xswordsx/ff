@@ -9,11 +9,7 @@ os:
   - windows
 cache: cargo
 matrix:
-  allow_failures:
-  - rust: nightly
   fast_finish: true
-before_script:
-   - export TRAVIS_TAG=${TRAVIS_TAG:-$(date +'%Y%m%d%H%M%S')-$(git log --format=%h -1)}
 script:
   - cargo build --verbose --all-features
   - cargo build --verbose --release
@@ -24,7 +20,6 @@ deploy:
   api_key:
     secure: fEOkvPUHoEtA4RJWkfNDfzU+NiXZKqor6doiAs/58CKFVeEv2iaCJtlv/1nbaBvzj/uXMJ6PPajKzPegG4nLVo+BRJ/Pzj7UuvGCUhKc4zBhhh4kSk/hGkXSjxpyJ/WvzgO2M/4PyLeXzw4DevBZ1cfAn/g+dkExWezahz3n+ICMd93hJIIX+jcELCnFzsJFm2qDxYfanoYiDPSSwujdOrEiIkhjx4+WjRwWGeaAisB4Dr0JnT6w4IHQ2GYoZvi6XOJcADHhz1cH3EEWdp4qPubha7kYmfb7246Ud8MoTUIk1FXcN0fD9N3dzbKs3PRT5gY/A1h9cGBwD4RUnAAIhCr2b1AVNHQAkY+05AMHJuqHHq1n+5SvSkiQz3VhZqC76bxmniqhiPhqcu/QRBfohNqqc8DIdDiJcalvw+xflNcEZIi7rKowF/DQmD/wGox4wYRnRbFVokI0lgnwQVN1GOS0EApfk+Q+XoxJxMfx+P7e2EEZ5RC4FL+TSiUfDPKGJHymOAc1tue0x44FJteWpyHT4Ybv5IpS4jvKXEfzeKzBfY8fIZZYtbrIEcHxv9NeOb0IhZMMpGUtCiJyl8an3d8HrLw429eeB1E+F7ebe/P9Sulwf3P6JXbbqj1tx1tYbaZnF2lys98ejVtl67Vl9PZ1smu1ofqe4BBg+iorZfU=
   file:
-    - ff_${TRAVIS_TAG:-$(date +'%Y%m%d%H%M%S')-$(git log --format=%h -1)}
+    - "ff_${TRAVIS_OS_NAME}"
   on:
     tags: true
-    repo: xswordsx/ff
