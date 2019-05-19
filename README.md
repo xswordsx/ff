@@ -5,3 +5,25 @@
 This tool reads logs from stdint and returns a more
 human-friendly version of them.
 
+## Installation
+
+A pre-built binary can be found on the [releases](https://github.com/xswordsx/ff/releases)
+section of the repository.
+
+## Building
+
+There are no other requirements except for the rust compiler
+and `cargo`.
+
+    $ cargo build
+
+## Testing
+
+The tests can be run with the `cargo` command:
+
+    $ cargo test
+
+## License
+
+This repository is licensed under [MIT](https://opensource.org/licenses/MIT)
+
