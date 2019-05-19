@@ -92,7 +92,7 @@ fn white(s: &str) -> std::string::String {
 }
 
 fn gray(s: &str) -> std::string::String {
-    return format!("\x1B[90m{}\x1B[39m", s);
+    return format!("\x1B[90m{}\x1B[0m", s);
 }
 fn bold(s: &str) -> std::string::String {
     return format!("\x1B[97m{}\x1B[0m", s);
