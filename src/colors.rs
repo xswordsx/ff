@@ -97,3 +97,62 @@ fn gray(s: &str) -> std::string::String {
 fn bold(s: &str) -> std::string::String {
     return format!("\x1B[97m{}\x1B[0m", s);
 }
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn color_on_clicolor() {
+        std::env::set_var("CLICOLOR", "1");
+        assert_eq!(colorize("test", "blue"), "\u{1b}[34mtest\u{1b}[0m");
+
+        std::env::set_var("CLICOLOR", "0");
+        assert_eq!(colorize("test", "blue"), "test");
+
+        std::env::remove_var("CLICOLOR");
+    }
+
+    #[test]
+    fn do_not_color_when_nocolor_set() {
+        std::env::set_var("NO_COLOR", "0");
+        assert_eq!(colorize("test", "green"), "test");
+
+        std::env::set_var("NO_COLOR", "1");
+        assert_eq!(colorize("test", "green"), "test");
+
+        std::env::remove_var("NO_COLOR");
+    }
+
+    #[test]
+    fn color_on_clicolor_force() {
+        std::env::set_var("CLICOLOR_FORCE", "1");
+        assert_eq!(colorize("test", "white"), "\u{1b}[37mtest\u{1b}[0m");
+
+        std::env::remove_var("CLICOLOR_FORCE");
+    }
+
+    #[test]
+    fn general_usecase() {
+        // Forciing color output in non-tty environment
+        std::env::set_var("CLICOLOR_FORCE", "1");
+
+        assert_eq!(colorize("Lorem ipsum", "black"),   "\x1B[30mLorem ipsum\x1B[0m");
+        assert_eq!(colorize("Lorem ipsum", "red"),     "\x1B[31mLorem ipsum\x1B[0m");
+        assert_eq!(colorize("Lorem ipsum", "green"),   "\x1B[32mLorem ipsum\x1B[0m");
+        assert_eq!(colorize("Lorem ipsum", "yellow"),  "\x1B[33mLorem ipsum\x1B[0m");
+        assert_eq!(colorize("Lorem ipsum", "blue"),    "\x1B[34mLorem ipsum\x1B[0m");
+        assert_eq!(colorize("Lorem ipsum", "magenta"), "\x1B[35mLorem ipsum\x1B[0m");
+        assert_eq!(colorize("Lorem ipsum", "cyan"),    "\x1B[36mLorem ipsum\x1B[0m");
+        assert_eq!(colorize("Lorem ipsum", "white"),   "\x1B[37mLorem ipsum\x1B[0m");
+
+        assert_eq!(colorize("Lorem ipsum", "bold"), "\x1B[97mLorem ipsum\x1B[0m");
+
+        assert_eq!(colorize("Lorem ipsum", "gray"), "\x1B[90mLorem ipsum\x1B[0m");
+    }
+
+    #[test]
+    fn unknown_color() {
+        assert_eq!(colorize("test", "blood_of_satan"), "test");
+    }
+}
