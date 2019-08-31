@@ -66,6 +66,7 @@ fn severity_fmt(s: &str) -> String {
         "debug" => return format!("[{}]", colors::colorize("DEBUG", "bold")),
         "info" => return format!("[{} ]", colors::colorize("INFO", "green")),
         "warn" => return format!("[{} ]", colors::colorize("WARN", "yellow")),
+        "warning" => return format!("[{} ]", colors::colorize("WARN", "yellow")),
         "error" => return format!("[{}]", colors::colorize("ERROR", "red")),
         "fatal" => return format!("[{}]", colors::colorize("FATAL", "bold")),
 
