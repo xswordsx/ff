@@ -133,6 +133,7 @@ mod test {
     }
 
     #[test]
+    #[rustfmt::skip::macros(assert_eq)]
     fn general_usecase() {
         // Forciing color output in non-tty environment
         std::env::set_var("CLICOLOR_FORCE", "1");
