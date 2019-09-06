@@ -13,6 +13,14 @@ fn format_line(mut obj: json::JsonValue) -> String {
         let ts = obj["time"].as_str().unwrap();
         let t = DateTime::parse_from_rfc3339(&ts).unwrap();
         result.push_str(format!("{}", t.format("%H:%M:%S2%.3f")).as_str());
+
+        obj.remove("time");
+    } else if obj.has_key("timestamp") {
+        let ts = obj["timestamp"].as_str().unwrap();
+        let t = DateTime::parse_from_rfc3339(&ts).unwrap();
+        result.push_str(format!("{}", t.format("%H:%M:%S2%.3f")).as_str());
+
+        obj.remove("timestamp");
     } else {
         result.push_str("??:??:??.???");
     }
@@ -38,7 +46,6 @@ fn format_line(mut obj: json::JsonValue) -> String {
         result.push_str(" <no message>");
     }
 
-    obj.remove("time");
     obj.remove("severity");
     obj.remove("message");
     obj.remove("component");
