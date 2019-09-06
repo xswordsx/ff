@@ -5,6 +5,8 @@
 This tool reads logs from stdint and returns a more
 human-friendly version of them.
 
+![Demo](http://a.webpurr.com/56Lz.webp)
+
 ## Installation
 
 A pre-built binary can be found on the [releases](https://github.com/xswordsx/ff/releases)
