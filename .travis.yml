@@ -14,7 +14,15 @@ script:
   - cargo test --bin ff -- --test-threads=1
   - cargo build --verbose --all-features
   - cargo build --verbose --release
-  - cp target/release/ff* "./ff_${TRAVIS_OS_NAME}"
+  - |-
+    case $TRAVIS_OS_NAME in
+      windows)
+        cp target/release/ff.exe "./ff_${TRAVIS_OS_NAME}.exe" ;
+        ;;
+      linux|osx)
+        cp target/release/ff "./ff_${TRAVIS_OS_NAME}" ;
+        ;;
+    esac
 
 deploy:
   provider: releases
