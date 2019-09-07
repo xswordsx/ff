@@ -118,7 +118,7 @@ mod test {
         assert!(result.is_ok())
     }
 
-    #[test]
+    #[test] #[ignore]
     fn color_on_clicolor() {
         run_test(
         || { std::env::set_var("CLICOLOR", "1") },
