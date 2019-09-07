@@ -1,0 +1,237 @@
+# This file is used for generating the demo gif that is
+# displayed in the README.md
+#
+# You need to have terminalizer (npm i -g terminalizer)
+# installed. Then simply run:
+#
+#     $ terminalizer render ./demo_terminal.yml
+#
+
+# The configurations that used for the recording, feel free to edit them
+config:
+
+  # Specify a command to be executed
+  # like `/bin/bash -l`, `ls`, or any other commands
+  # the default is bash for Linux
+  # or powershell.exe for Windows
+  command: zsh -l
+
+  # Specify the current working directory path
+  # the default is the current working directory path
+  cwd: /projects/ff
+
+  # Export additional ENV variables
+  env:
+    recording: true
+
+  # Not an actual property of terminalizer, but a handy way
+  # of printing the teminal line wherever needed.
+  #
+  # Note the double-quotes - they are needed for ANSI colors.
+  terminalLine: &terminalLine "[\e[1m\e[32mxswordsx\e[00m@\e[1m\e[34mff\e[00m] \e[01m$\e[00m "
+
+  # Explicitly set the number of columns
+  # or use `auto` to take the current
+  # number of columns of your shell
+  cols: 140
+
+  # Explicitly set the number of rows
+  # or use `auto` to take the current
+  # number of rows of your shell
+  rows: 45
+
+  # Amount of times to repeat GIF
+  # If value is -1, play once
+  # If value is 0, loop indefinitely
+  # If value is a positive number, loop n times
+  repeat: 0
+
+  # Quality
+  # 1 - 100
+  quality: 100
+
+  # Delay between frames in ms
+  # If the value is `auto` use the actual recording delays
+  frameDelay: auto
+
+  # Maximum delay between frames in ms
+  # Ignored if the `frameDelay` isn't set to `auto`
+  # Set to `auto` to prevent limiting the max idle time
+  maxIdleTime: 4000
+
+  # The surrounding frame box
+  # The `type` can be null, window, floating, or solid`
+  # To hide the title use the value null
+  # Don't forget to add a backgroundColor style with a null as type
+  frameBox:
+    type: null
+    title: Fluentd formatter
+    style:
+      border: '10px #141414 solid'
+      # boxShadow: none
+      # margin: 0px
+
+  # Add a watermark image to the rendered gif
+  # You need to specify an absolute path for
+  # the image on your machine or a URL, and you can also
+  # add your own CSS styles
+  watermark:
+    imagePath: null
+    style:
+      position: absolute
+      right: 15px
+      bottom: 15px
+      width: 100px
+      opacity: 0.9
+
+  # Cursor style can be one of
+  # `block`, `underline`, or `bar`
+  cursorStyle: block
+
+  # Font family
+  # You can use any font that is installed on your machine
+  # in CSS-like syntax
+  fontFamily: "'Fira Code', 'Fira Mono', 'Liberation Mono', monospace"
+
+  # The size of the font
+  fontSize: 18
+
+  # The height of lines
+  lineHeight: 1
+
+  # The spacing between letters
+  letterSpacing: 0
+
+  # Theme
+  #
+  # Current theme is: brewer.dark (from terminal.sexy) with
+  # a modified green color.
+  theme:
+    background: "#0c0d0e"
+    foreground: "#b7b8b9"
+    cursor: "#c7c7c7"
+    black: "#0c0d0e"
+    red: "#e31a1c"
+    green: "#90a959"
+    yellow: "#dca060"
+    blue: "#3182bd"
+    magenta: "#756bb1"
+    cyan: "#80b1d3"
+    white: "#b7b8b9"
+    brightBlack: "#737475"
+    brightRed: "#e31a1c"
+    brightGreen: "#31a354"
+    brightYellow: "#dca060"
+    brightBlue: "#3182bd"
+    brightMagenta: "#756bb1"
+    brightCyan: "#80b1d3"
+    brightWhite: "#fcfdfe"
+
+# Records, feel free to edit them
+records:
+  - delay: 0
+    content: *terminalLine
+  # - delay: 1000
+  #   content: c
+  # - delay: 100
+  #   content: a
+  # - delay: 100
+  #   content: t
+  # - delay: 100
+  #   content: ' '
+  # - delay: 100
+  #   content: u
+  # - delay: 100
+  #   content: s
+  # - delay: 100
+  #   content: e
+  # - delay: 100
+  #   content: r
+  # - delay: 100
+  #   content: .
+  # - delay: 100
+  #   content: l
+  # - delay: 100
+  #   content: o
+  # - delay: 100
+  #   content: g
+  # - delay: 200
+  #   content: "\r\n{\"component\":\"app\",\"ctx.sessionId\":\"3ae53df9e557c9893060c62a848113ba\",\"error\":\"licensing: cannot handle license\",\"message\":\"error handling request\",\"severity\":\"error\",\"time\":\"2019-05-21T18:36:34.9462174+03:00\"}\r\r\n{\"component\":\"app\",\"ctx.sessionId\":\"20377a5fef82b3f856d3ca4566def14f\",\"error\":\"licensing: cannot handle license\",\"message\":\"error handling request\",\"severity\":\"error\",\"time\":\"2019-05-21T18:41:49.4995824+03:00\"}\r\r\n{\"component\":\"app\",\"message\":\"License request could not be handled\",\"severity\":\"warning\",\"statusCode\":504,\"time\":\"2019-05-21T18:46:13.6254787+03:00\"}\r\r\n{\"component\":\"app\",\"ctx.sessionId\":\"857830fffd6aaf22fe7d12283462efa8\",\"error\":\"licensing: cannot handle license\",\"message\":\"error handling request\",\"severity\":\"error\",\"time\":\"2019-05-21T18:46:13.6254787+03:00\"}\r\r\n{\"component\":\"bundle_manager\",\"message\":\"Updating bundles file\",\"severity\":\"info\",\"time\":\"2019-05-21T19:14:08.5339999+03:00\"}\r\r\n{\"component\":\"app\",\"ctx.sessionId\":\"afed9687e1eac603de2e0151ebe2b1eb\",\"error\":\"licensing: cannot handle license\",\"message\":\"error handling request\",\"severity\":\"error\",\"time\":\"2019-05-21T19:54:13.614185+03:00\"}\r\r\n{\"component\":\"bundle_manager\",\"message\":\"Updating bundles file\",\"severity\":\"info\",\"time\":\"2019-05-21T20:14:08.535172+03:00\"}\r\r\n{\"component\":\"bundle_manager\",\"message\":\"Updating bundles file\",\"severity\":\"info\",\"time\":\"2019-05-21T21:14:08.5345907+03:00\"}\r\r\n{\"component\":\"bundle_manager\",\"message\":\"Updating bundles file\",\"severity\":\"info\",\"time\":\"2019-05-21T22:14:08.5340388+03:00\"}\r\r\n{\"component\":\"app\",\"ctx.sessionId\":\"8a3712c6bfccda2ee55a8ffe6095bf71\",\"error\":\"licensing: cannot handle license\",\"message\":\"error handling request\",\"severity\":\"error\",\"time\":\"2019-05-21T22:40:25.0555508+03:00\"}\r\r\n\r\n"
+  # - delay: 0
+  #   content: *terminalLine
+  # - delay: 2000
+  #   content: c
+  # - delay: 100
+  #   content: a
+  # - delay: 100
+  #   content: t
+  # - delay: 100
+  #   content: ' '
+  # - delay: 100
+  #   content: u
+  # - delay: 100
+  #   content: s
+  # - delay: 100
+  #   content: e
+  # - delay: 100
+  #   content: r
+  # - delay: 100
+  #   content: .
+  # - delay: 100
+  #   content: l
+  # - delay: 100
+  #   content: o
+  # - delay: 100
+  #   content: g
+  # - delay: 100
+  #   content: ' '
+  # - delay: 100
+  #   content: '|'
+  # - delay: 100
+  #   content: ' '
+  # - delay: 100
+  #   content: .
+  # - delay: 100
+  #   content: /
+  # - delay: 100
+  #   content: t
+  # - delay: 100
+  #   content: a
+  # - delay: 100
+  #   content: r
+  # - delay: 100
+  #   content: g
+  # - delay: 100
+  #   content: e
+  # - delay: 100
+  #   content: t
+  # - delay: 100
+  #   content: /
+  # - delay: 100
+  #   content: r
+  # - delay: 100
+  #   content: e
+  # - delay: 100
+  #   content: l
+  # - delay: 100
+  #   content: e
+  # - delay: 100
+  #   content: a
+  # - delay: 100
+  #   content: s
+  # - delay: 100
+  #   content: e
+  # - delay: 100
+  #   content: /
+  # - delay: 100
+  #   content: f
+  # - delay: 100
+  #   content: f
+  # - delay: 100
+  #   content: "\r\n"
+  # - delay: 50
+  #   content: "18:36:342.946 [\e[31mERROR\e[0m] \e[36mapp\e[0m error handling request\e[90m\r\n  ctx.sessionId: 3ae53df9e557c9893060c62a848113ba\r\n  error: \"licensing: cannot handle license\"\e[0m\r\n18:41:492.499 [\e[31mERROR\e[0m] \e[36mapp\e[0m error handling request\e[90m\r\n  ctx.sessionId: 20377a5fef82b3f856d3ca4566def14f\r\n  error: \"licensing: cannot handle license\"\e[0m\r\n18:46:132.625 [\e[33mWARN\e[0m ] \e[36mapp\e[0m License request could not be handled\e[90m\r\n  statusCode: 504\e[0m\r\n18:46:132.625 [\e[31mERROR\e[0m] \e[36mapp\e[0m error handling request\e[90m\r\n  ctx.sessionId: 857830fffd6aaf22fe7d12283462efa8\r\n  error: \"licensing: cannot handle license\"\e[0m\r\n19:14:082.533 [\e[32mINFO\e[0m ] \e[36mbundle_manager\e[0m Updating bundles file\r\n19:54:132.614 [\e[31mERROR\e[0m] \e[36mapp\e[0m error handling request\e[90m\r\n  ctx.sessionId: afed9687e1eac603de2e0151ebe2b1eb\r\n  error: \"licensing: cannot handle license\"\e[0m\r\n20:14:082.535 [\e[32mINFO\e[0m ] \e[36mbundle_manager\e[0m Updating bundles file\r\n21:14:082.534 [\e[32mINFO\e[0m ] \e[36mbundle_manager\e[0m Updating bundles file\r\n22:14:082.534 [\e[32mINFO\e[0m ] \e[36mbundle_manager\e[0m Updating bundles file\r\n22:40:252.055 [\e[31mERROR\e[0m] \e[36mapp\e[0m error handling request\e[90m\r\n  ctx.sessionId: 8a3712c6bfccda2ee55a8ffe6095bf71\r\n  error: \"licensing: cannot handle license\"\e[0m\r\n\r\n"
+  # - delay: 0
+  #   content: *terminalLine
+  # - delay: 5000
+  #   content: "\r\n"
