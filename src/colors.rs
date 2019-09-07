@@ -102,34 +102,60 @@ fn bold(s: &str) -> std::string::String {
 mod test {
     use super::*;
 
+    /// run_test is a super-minimal wrapper to let the dev
+    /// run setup and teardown steps.
+    fn run_test<T>(setup: fn() -> (), test: T, teardown: fn() -> ()) -> ()
+    where T: FnOnce() -> () + std::panic::UnwindSafe
+    {
+        setup();
+
+        let result = std::panic::catch_unwind(|| {
+            test()
+        });
+
+        teardown();
+
+        assert!(result.is_ok())
+    }
+
     #[test]
     fn color_on_clicolor() {
-        std::env::set_var("CLICOLOR", "1");
-        assert_eq!(colorize("test", "blue"), "\u{1b}[34mtest\u{1b}[0m");
+        run_test(
+        || { std::env::set_var("CLICOLOR", "1") },
+        || { assert_eq!(colorize("test", "blue"), "\u{1b}[34mtest\u{1b}[0m") },
+        || { std::env::remove_var("CLICOLOR") },
+        );
 
-        std::env::set_var("CLICOLOR", "0");
-        assert_eq!(colorize("test", "blue"), "test");
-
-        std::env::remove_var("CLICOLOR");
+        run_test(
+        || { std::env::set_var("CLICOLOR", "0") },
+        || { assert_eq!(colorize("test", "blue"), "test") },
+        || { std::env::remove_var("CLICOLOR") },
+        );
     }
 
     #[test]
     fn do_not_color_when_nocolor_set() {
-        std::env::set_var("NO_COLOR", "0");
-        assert_eq!(colorize("test", "green"), "test");
+        run_test(
+        || { std::env::set_var("NO_COLOR", "0") },
+        || { assert_eq!(colorize("test", "green"), "test") },
+        || { std::env::remove_var("NO_COLOR") },
+        );
 
-        std::env::set_var("NO_COLOR", "1");
-        assert_eq!(colorize("test", "green"), "test");
+        run_test(
+        || { std::env::set_var("NO_COLOR", "1") },
+        || { assert_eq!(colorize("test", "green"), "test") },
+        || { std::env::remove_var("NO_COLOR") },
+        );
 
-        std::env::remove_var("NO_COLOR");
     }
 
     #[test]
     fn color_on_clicolor_force() {
-        std::env::set_var("CLICOLOR_FORCE", "1");
-        assert_eq!(colorize("test", "white"), "\u{1b}[37mtest\u{1b}[0m");
-
-        std::env::remove_var("CLICOLOR_FORCE");
+        run_test(
+        || { std::env::set_var("CLICOLOR_FORCE", "1") },
+        || { assert_eq!(colorize("test", "white"), "\u{1b}[37mtest\u{1b}[0m") },
+        || { std::env::remove_var("CLICOLOR_FORCE") },
+        );
     }
 
     #[test]
