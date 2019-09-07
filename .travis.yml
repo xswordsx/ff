@@ -11,10 +11,10 @@ cache: cargo
 matrix:
   fast_finish: true
 script:
-  - cargo test -- --test-threads=1
+  - cargo test --bin ff -- --test-threads=1
   - cargo build --verbose --all-features
   - cargo build --verbose --release
-  - cp target/release/ff "./ff_${TRAVIS_OS_NAME}"
+  - cp target/release/ff* "./ff_${TRAVIS_OS_NAME}"
 
 deploy:
   provider: releases
