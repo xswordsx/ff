@@ -1,29 +1,36 @@
 mod colors;
 
-use chrono::DateTime;
+use chrono::{DateTime, FixedOffset};
 use getopts;
 use std::io::{self, BufRead};
 use yaml_rust::{YamlEmitter, YamlLoader};
 
+fn extract_date(obj: &json::JsonValue) -> Result<(DateTime<FixedOffset>, &'static str), &'static str> {
+    let prop: &str;
+    if obj.has_key("time") {
+        prop = "time";
+    } else if obj.has_key("timestamp") {
+        prop = "timestamp";
+    } else {
+         return Err("no timestamp found");
+    }
+    let ts = obj[prop].as_str().unwrap();
+    match DateTime::parse_from_rfc3339(&ts) {
+        Ok(v) => return Ok((v, prop)),
+        Err(_) => return Err("could not parse time"),
+    };
+}
+
 fn format_line(mut obj: json::JsonValue) -> String {
     let mut result = String::default();
 
-    // TODO: Support short version
-    if obj.has_key("time") {
-        let ts = obj["time"].as_str().unwrap();
-        let t = DateTime::parse_from_rfc3339(&ts).unwrap();
-        result.push_str(format!("{}", t.format("%H:%M:%S2%.3f")).as_str());
-
-        obj.remove("time");
-    } else if obj.has_key("timestamp") {
-        let ts = obj["timestamp"].as_str().unwrap();
-        let t = DateTime::parse_from_rfc3339(&ts).unwrap();
-        result.push_str(format!("{}", t.format("%H:%M:%S2%.3f")).as_str());
-
-        obj.remove("timestamp");
-    } else {
-        result.push_str("??:??:??.???");
-    }
+    match extract_date(&obj) {
+        Ok(t) => {
+            result.push_str(format!("{}", t.0.format("%H:%M:%S2%.3f")).as_str());
+            obj.remove(t.1);
+        },
+        Err(_) => result.push_str("00:00:000.000"),
+    };
 
     if obj.has_key("severity") {
         let svrty = severity_fmt(obj["severity"].as_str().unwrap());
