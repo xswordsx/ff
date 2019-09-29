@@ -5,6 +5,37 @@ use getopts;
 use std::io::{self, BufRead};
 use yaml_rust::{YamlEmitter, YamlLoader};
 
+fn print_version(program: &str, as_json: bool) {
+    let short_name = std::path::Path::new(program)
+        .file_name()
+        .unwrap()
+        .to_str()
+        .unwrap();
+
+    let version = option_env!("VERSION").unwrap_or("0.0.0");
+    let hash = option_env!("HASH").unwrap_or("0000000");
+    let build_at = option_env!("BUILD_AT").unwrap_or("1970-01-01");
+
+    if as_json {
+        println!(
+            "{{\
+            \"program\":\"{}\",\
+            \"version\":\"{}\",\
+            \"hash\":\"{}\",\
+            \"build_at\":\"{}\"\
+            }}",
+            short_name, version, hash, build_at,
+        );
+        return;
+    }
+
+    println!(
+        "{} version {} build {} built at {}",
+        short_name, version, hash, build_at,
+    );
+    return;
+}
+
 fn extract_date(obj: &json::JsonValue) -> Result<(DateTime<FixedOffset>, &'static str), &'static str> {
     let prop: &str;
     if obj.has_key("time") {
@@ -24,6 +55,7 @@ fn extract_date(obj: &json::JsonValue) -> Result<(DateTime<FixedOffset>, &'stati
 fn format_line(mut obj: json::JsonValue) -> String {
     let mut result = String::default();
 
+    // TODO: Implement --short timestamp
     match extract_date(&obj) {
         Ok(t) => {
             result.push_str(format!("{}", t.0.format("%H:%M:%S2%.3f")).as_str());
@@ -103,19 +135,25 @@ fn main() {
     let program = args[0].clone();
 
     let mut opts = getopts::Options::new();
-    opts.optopt("o", "", "set output mode", "([normal]|short)");
+    opts.optopt("o", "output", "set output mode", "([normal]|short)");
+    opts.optflag("v", "version", "prints out the version and build information");
+    opts.optflag("", "json", "output it as JSON (for --version flag only)");
     opts.optflag("h", "help", "print this help menu");
     let matches = match opts.parse(&args[1..]) {
         Ok(m) => m,
         Err(f) => panic!(f.to_string()),
     };
-    if matches.opt_present("h") {
+    if matches.opt_present("help") {
         print_usage(&program, opts);
         return;
     }
+    if matches.opt_present("version") {
+        print_version(&program, matches.opt_present("json"));
+        return;
+    }
     let output_mode: String;
-    if matches.opt_present("o") {
-        output_mode = match matches.opt_str("o") {
+    if matches.opt_present("output") {
+        output_mode = match matches.opt_str("output") {
             Some(x) => x,
             None => String::from("normal"),
         };
@@ -123,10 +161,9 @@ fn main() {
         if output_mode != "normal" && output_mode != "short" {
             println!("unsupported output mode '{}'", output_mode);
             print_usage(&program, opts);
-            return;
+            std::process::exit(1);
         }
     }
-    // TODO: Support --short & --version & --help flags
     let stdin = io::stdin();
     for line in stdin.lock().lines() {
         let raw_line = line.unwrap();
