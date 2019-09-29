@@ -12,7 +12,8 @@ fn print_version(program: &str, as_json: bool) {
         .to_str()
         .unwrap();
 
-    let version = option_env!("VERSION").unwrap_or("0.0.0");
+    let fallback_version = format!("{}-dev", env!("CARGO_PKG_VERSION"));
+    let version = option_env!("VERSION").unwrap_or(fallback_version.as_str());
     let hash = option_env!("HASH").unwrap_or("0000000");
     let build_at = option_env!("BUILD_AT").unwrap_or("1970-01-01");
 
