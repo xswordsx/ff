@@ -31,11 +31,12 @@ script:
 deploy:
   provider: releases
   api_key:
-    secure: fEOkvPUHoEtA4RJWkfNDfzU+NiXZKqor6doiAs/58CKFVeEv2iaCJtlv/1nbaBvzj/uXMJ6PPajKzPegG4nLVo+BRJ/Pzj7UuvGCUhKc4zBhhh4kSk/hGkXSjxpyJ/WvzgO2M/4PyLeXzw4DevBZ1cfAn/g+dkExWezahz3n+ICMd93hJIIX+jcELCnFzsJFm2qDxYfanoYiDPSSwujdOrEiIkhjx4+WjRwWGeaAisB4Dr0JnT6w4IHQ2GYoZvi6XOJcADHhz1cH3EEWdp4qPubha7kYmfb7246Ud8MoTUIk1FXcN0fD9N3dzbKs3PRT5gY/A1h9cGBwD4RUnAAIhCr2b1AVNHQAkY+05AMHJuqHHq1n+5SvSkiQz3VhZqC76bxmniqhiPhqcu/QRBfohNqqc8DIdDiJcalvw+xflNcEZIi7rKowF/DQmD/wGox4wYRnRbFVokI0lgnwQVN1GOS0EApfk+Q+XoxJxMfx+P7e2EEZ5RC4FL+TSiUfDPKGJHymOAc1tue0x44FJteWpyHT4Ybv5IpS4jvKXEfzeKzBfY8fIZZYtbrIEcHxv9NeOb0IhZMMpGUtCiJyl8an3d8HrLw429eeB1E+F7ebe/P9Sulwf3P6JXbbqj1tx1tYbaZnF2lys98ejVtl67Vl9PZ1smu1ofqe4BBg+iorZfU=
+    secure: "vHSobZwxHGTy8+nmvC6xCrjcEQw0WoV6GeCCYcohUHrWeSK/gPMT9NK9zo/MHyO5y2xfqksDHVCBBw/x0i5OjUDWN+pLt4csvVDC5/tM9pkWXaMKcfdzENoVeCcYdO9aZmvAhmJqh1tqKuwK746jzeO3skJAI+85cR7UvSOcwCGcY9SWCd0WUSRyucvMBXlmlnfHoI67EH+mygaRqJ3DUaUAhduRuYR73OVpGdaGwWFl/vrZ8sKz8ptUm+zkd/LwCn7Wzqk7aobnS8oF739asZyC+xKKXhoxGMUF8wy9h4ZRPpUIHO3xFzmmMQFNYQsO9UO5wv1lPDjM6eUgALSDgBTnvBHnXp07TMAzYqVdIgDJFeo7LNY+XRbG4hLWHVvgWXizSlDzilayUQ/ojRhv3nrNFT/ia6NDeQOGAMsf0snxn1Da7K9jyw/WdA+XBNnSKRHdC4qIfgp2I3GB/pMR05qvro5O3MxP0ktpc4Hz0wN4iN2tMo/zTp2xDzsD1i85OAjexPXXgZAkvYOspzb3MJGIx6prmL+w+07ayLcXYlsQ+EQBx2BB5K5F6AMe4khRpOklrFMFYkmoN1PKT1Qpy5ZPVB+RL8xJoJHU/45Cn19KyzkO99ODy1hvnX3fGFoAoHZE28X/KcfCp/d+dKeUys8QAfWrSIaz5o70/6LH484="
   file:
     - "ff_linux"
     - "ff_osx"
     - "ff_windows.exe"
+  skip_cleanup: true
   draft: true
   on:
     tags: true
