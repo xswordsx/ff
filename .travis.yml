@@ -11,9 +11,9 @@ cache: cargo
 matrix:
   fast_finish: true
 script:
-  # VERSION variable is accessed as CARGO_PKG_VERSION
+  - export VERSION="$TRAVIS_TAG"
   - export HASH=$(git rev-parse --short HEAD)
-  - export BUILD_AT="$(date date --iso-8601=seconds)"
+  - export BUILD_AT="$(date --iso-8601=seconds)"
 
   - cargo test --bin ff -- --test-threads=1
   - cargo build --verbose --all-features
