@@ -15,7 +15,24 @@ script:
   - export HASH=$(git rev-parse --short HEAD)
   - export BUILD_AT="$(date --iso-8601=seconds)"
 
-  - cargo test --bin ff -- --test-threads=1
+  - |-
+    case $TRAVIS_OS_NAME in
+      windows)
+        curl -L https://github.com/rprichard/winpty/releases/download/0.4.3/winpty-0.4.3-msys2-2.7.0-x64.tar.gz > winpty-0.4.3-msys2-2.7.0-x64.tar.gz ;
+        7z e winpty-0.4.3-msys2-2.7.0-x64.tar.gz && 7z x winpty-0.4.3-msys2-2.7.0-x64.tar ;
+        export PATH="$PATH:$(pwd)/winpty-0.4.3-msys2-2.7.0-x64/bin" ;
+        uname -a ;
+        which bash ;
+        which cmd ;
+        which powershell ;
+        which winpty.exe ;
+        winpty.exe -Xallow-non-tty -Xplain cargo test --bin ff -- --test-threads=1 ;
+        ;;
+      linux|osx)
+        cargo test --bin ff -- --test-threads=1 ;
+        ;;
+    esac
+
   - cargo build --verbose --all-features
   - cargo build --verbose --release
   - |-
