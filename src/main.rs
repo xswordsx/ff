@@ -38,16 +38,11 @@ fn print_version(program: &str, as_json: bool) {
 }
 
 fn extract_date(obj: &json::JsonValue) -> Result<(DateTime<FixedOffset>, &'static str), &'static str> {
-    let prop: &str;
-    if obj.has_key("time") {
-        prop = "time";
-    } else if obj.has_key("timestamp") {
-        prop = "timestamp";
-    } else {
-         return Err("no timestamp found");
-    }
-    let ts = obj[prop].as_str().unwrap();
-    match DateTime::parse_from_rfc3339(&ts) {
+    let possible_keys = ["ts", "time", "timestamp"];
+
+    let prop = possible_keys.iter().find(|x| obj.has_key(x)).unwrap();
+    let ts = obj[*prop].as_str().unwrap();
+    match DateTime::parse_from_rfc3339(ts) {
         Ok(v) => return Ok((v, prop)),
         Err(_) => return Err("could not parse time"),
     };
