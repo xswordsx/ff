@@ -27,22 +27,12 @@ pub fn colorize(s: &str, color: &str) -> std::string::String {
 
 // Implements https://bixense.com/clicolors/
 fn clicolor() -> bool {
-    let force_color = match std::env::var("CLICOLOR_FORCE") {
-        Ok(val) => val != "0",
-        Err(_) => false,
-    };
+    let color_var = std::env::var("CLICOLOR").unwrap_or(String::from("1"));
+    let force_color = std::env::var("CLICOLOR_FORCE").unwrap_or(String::from("0"));
 
-    if force_color {
+    if (color_var != "0" && atty::is(atty::Stream::Stdout)) || force_color != "0" {
         return true;
     }
-
-    if atty::is(atty::Stream::Stdout) {
-        match std::env::var("CLICOLOR") {
-            Ok(val) => return val != "0",
-            Err(_) => return true,
-        };
-    }
-
     return false;
 }
 
