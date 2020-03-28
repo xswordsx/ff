@@ -105,6 +105,7 @@ mod test {
     }
 
     #[test]
+    #[ignore]
     fn color_on_clicolor() {
         run_test(
             || std::env::set_var("CLICOLOR", "1"),
@@ -146,21 +147,25 @@ mod test {
     #[test]
     #[rustfmt::skip::macros(assert_eq)]
     fn general_usecase() {
-        // Forciing color output in non-tty environment
-        std::env::set_var("CLICOLOR_FORCE", "1");
+        run_test(
+            // Forcing color output in non-tty environment
+            || std::env::set_var("CLICOLOR_FORCE", "1"),
+            || {
+                assert_eq!(colorize("Lorem ipsum", "black"),   "\x1B[30mLorem ipsum\x1B[0m");
+                assert_eq!(colorize("Lorem ipsum", "red"),     "\x1B[31mLorem ipsum\x1B[0m");
+                assert_eq!(colorize("Lorem ipsum", "green"),   "\x1B[32mLorem ipsum\x1B[0m");
+                assert_eq!(colorize("Lorem ipsum", "yellow"),  "\x1B[33mLorem ipsum\x1B[0m");
+                assert_eq!(colorize("Lorem ipsum", "blue"),    "\x1B[34mLorem ipsum\x1B[0m");
+                assert_eq!(colorize("Lorem ipsum", "magenta"), "\x1B[35mLorem ipsum\x1B[0m");
+                assert_eq!(colorize("Lorem ipsum", "cyan"),    "\x1B[36mLorem ipsum\x1B[0m");
+                assert_eq!(colorize("Lorem ipsum", "white"),   "\x1B[37mLorem ipsum\x1B[0m");
 
-        assert_eq!(colorize("Lorem ipsum", "black"),   "\x1B[30mLorem ipsum\x1B[0m");
-        assert_eq!(colorize("Lorem ipsum", "red"),     "\x1B[31mLorem ipsum\x1B[0m");
-        assert_eq!(colorize("Lorem ipsum", "green"),   "\x1B[32mLorem ipsum\x1B[0m");
-        assert_eq!(colorize("Lorem ipsum", "yellow"),  "\x1B[33mLorem ipsum\x1B[0m");
-        assert_eq!(colorize("Lorem ipsum", "blue"),    "\x1B[34mLorem ipsum\x1B[0m");
-        assert_eq!(colorize("Lorem ipsum", "magenta"), "\x1B[35mLorem ipsum\x1B[0m");
-        assert_eq!(colorize("Lorem ipsum", "cyan"),    "\x1B[36mLorem ipsum\x1B[0m");
-        assert_eq!(colorize("Lorem ipsum", "white"),   "\x1B[37mLorem ipsum\x1B[0m");
+                assert_eq!(colorize("Lorem ipsum", "bold"), "\x1B[97mLorem ipsum\x1B[0m");
 
-        assert_eq!(colorize("Lorem ipsum", "bold"), "\x1B[97mLorem ipsum\x1B[0m");
-
-        assert_eq!(colorize("Lorem ipsum", "gray"), "\x1B[90mLorem ipsum\x1B[0m");
+                assert_eq!(colorize("Lorem ipsum", "gray"), "\x1B[90mLorem ipsum\x1B[0m");
+            },
+            || std::env::remove_var("CLICOLOR_FORCE"),
+        );
     }
 
     #[test]
