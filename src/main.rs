@@ -40,7 +40,11 @@ fn print_version(program: &str, as_json: bool) {
 fn extract_date(obj: &json::JsonValue) -> Result<(DateTime<FixedOffset>, &'static str), &'static str> {
     let possible_keys = ["ts", "time", "timestamp"];
 
-    let prop = possible_keys.iter().find(|x| obj.has_key(x)).unwrap();
+    let prop_key = possible_keys.iter().find(|x| obj.has_key(x));
+    if prop_key.is_none() {
+        return Err("no time field provided");
+    }
+    let prop = prop_key.unwrap();
     let ts = obj[*prop].as_str().unwrap();
     match DateTime::parse_from_rfc3339(ts) {
         Ok(v) => return Ok((v, prop)),
@@ -56,7 +60,7 @@ fn format_line(mut obj: json::JsonValue) -> String {
         Ok(t) => {
             result.push_str(format!("{}", t.0.format("%H:%M:%S2%.3f")).as_str());
             obj.remove(t.1);
-        },
+        }
         Err(_) => result.push_str("00:00:000.000"),
     };
 
