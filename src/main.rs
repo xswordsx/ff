@@ -175,3 +175,19 @@ fn main() {
         println!("{}", format_line(parsed_line));
     }
 }
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn prints_zeroes_on_missing_timestamp() {
+        let input_str ="{\"message\":\"hi\",\"severity\":\"info\"}";
+        let input_json: json::JsonValue = json::parse(input_str).unwrap();
+        let expected = String::from("00:00:000.000 [INFO ] hi");
+        std::env::set_var("CLICOLOR", "0");
+        let output = format_line(input_json);
+        std::env::remove_var("CLICOLOR");
+        assert_eq!(output, expected);
+    }
+}
