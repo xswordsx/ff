@@ -1,4 +1,5 @@
 mod colors;
+mod utils;
 
 use chrono::{DateTime, FixedOffset};
 use getopts;
@@ -37,7 +38,11 @@ fn print_version(program: &str, as_json: bool) {
     return;
 }
 
-fn extract_date(obj: &json::JsonValue) -> Result<(DateTime<FixedOffset>, &'static str), &'static str> {
+/// Returns a tuple of `<value, key>` with the date from a
+/// JSON object.
+fn extract_date(
+    obj: &json::JsonValue,
+) -> Result<(DateTime<FixedOffset>, &'static str), &'static str> {
     let possible_keys = ["ts", "time", "timestamp"];
 
     let prop_key = possible_keys.iter().find(|x| obj.has_key(x));
@@ -52,8 +57,13 @@ fn extract_date(obj: &json::JsonValue) -> Result<(DateTime<FixedOffset>, &'stati
     };
 }
 
-fn format_line(mut obj: json::JsonValue) -> String {
+fn format_line(mut obj: json::JsonValue, color_output: bool) -> String {
     let mut result = String::default();
+
+    let colorizer: fn(&str, colors::Color) -> String = match color_output {
+        true => colors::colorize,
+        false => |x, _| String::from(x),
+    };
 
     // TODO: Implement --short timestamp
     match extract_date(&obj) {
@@ -65,7 +75,7 @@ fn format_line(mut obj: json::JsonValue) -> String {
     };
 
     if obj.has_key("severity") {
-        let svrty = severity_fmt(obj["severity"].as_str().unwrap());
+        let svrty = severity_fmt(obj["severity"].as_str().unwrap(), colorizer);
         result.push(' ');
         result.push_str(svrty.as_str());
     } else {
@@ -73,9 +83,9 @@ fn format_line(mut obj: json::JsonValue) -> String {
     }
 
     if obj.has_key("component") {
-        let cmpt = severity_fmt(obj["component"].as_str().unwrap());
+        let cmpt = obj["component"].as_str().unwrap();
         result.push(' ');
-        result.push_str(colors::colorize(cmpt.as_str(), "cyan").as_str());
+        result.push_str(colorizer(cmpt, colors::Color::Cyan).as_str());
     }
 
     if obj.has_key("message") {
@@ -98,23 +108,23 @@ fn format_line(mut obj: json::JsonValue) -> String {
     }
     if out_str != "---\n{}" && out_str != "---" && out_str != "" {
         let formatted_data = out_str.trim_start_matches("---").replace('\n', "\n  ");
-        let colored = colors::colorize(formatted_data.as_str(), "gray");
+        let colored = colorizer(formatted_data.as_str(), colors::Color::Gray);
         result.push_str(colored.as_str());
     }
 
     return result;
 }
 
-fn severity_fmt(s: &str) -> String {
+fn severity_fmt(s: &str, colorizer: fn(&str, colors::Color) -> String) -> String {
     // TODO: Support short version
     match s {
-        "trace" => return format!("[{}]", colors::colorize("TRACE", "")),
-        "debug" => return format!("[{}]", colors::colorize("DEBUG", "bold")),
-        "info" => return format!("[{} ]", colors::colorize("INFO", "green")),
-        "warn" => return format!("[{} ]", colors::colorize("WARN", "yellow")),
-        "warning" => return format!("[{} ]", colors::colorize("WARN", "yellow")),
-        "error" => return format!("[{}]", colors::colorize("ERROR", "red")),
-        "fatal" => return format!("[{}]", colors::colorize("FATAL", "bold")),
+        "trace" => return format!("[{}]", colorizer("TRACE", colors::Color::None)),
+        "debug" => return format!("[{}]", colorizer("DEBUG", colors::Color::Bold)),
+        "info" => return format!("[{} ]", colorizer("INFO", colors::Color::Green)),
+        "warn" => return format!("[{} ]", colorizer("WARN", colors::Color::Yellow)),
+        "warning" => return format!("[{} ]", colorizer("WARN", colors::Color::Yellow)),
+        "error" => return format!("[{}]", colorizer("ERROR", colors::Color::Red)),
+        "fatal" => return format!("[{}]", colorizer("FATAL", colors::Color::Bold)),
 
         _ => return String::from(s),
     }
@@ -136,7 +146,11 @@ fn main() {
 
     let mut opts = getopts::Options::new();
     opts.optopt("o", "output", "set output mode", "([normal]|short)");
-    opts.optflag("v", "version", "prints out the version and build information");
+    opts.optflag(
+        "v",
+        "version",
+        "prints out the version and build information",
+    );
     opts.optflag("", "json", "output it as JSON (for --version flag only)");
     opts.optflag("h", "help", "print this help menu");
     let matches = match opts.parse(&args[1..]) {
@@ -164,15 +178,16 @@ fn main() {
             std::process::exit(1);
         }
     }
+    let color_output = utils::color_from_env();
     let stdin = io::stdin();
     for line in stdin.lock().lines() {
         let raw_line = line.unwrap();
-        let parsed_line = json::parse(&raw_line).unwrap_or(json::object! {});
-        if parsed_line == json::object! {} {
+        let parsed_line = json::parse(&raw_line).unwrap_or(json::Null);
+        if parsed_line == json::Null {
             println!("{}", &raw_line);
             continue;
         }
-        println!("{}", format_line(parsed_line));
+        println!("{}", format_line(parsed_line, color_output));
     }
 }
 
@@ -181,13 +196,32 @@ mod test {
     use super::*;
 
     #[test]
+    fn test_date_extraction() {
+        let kv_pairs: [(&str, &str); 3] = [
+            ("time", "1970-01-01T01:23:45.000Z"),
+            ("ts", "2020-02-03T12:34:56.000Z"),
+            ("timestamp", "1234-05-06T07:08:09.000Z"),
+        ];
+        for tup in &kv_pairs {
+            let [key, value] = [tup.0, tup.1];
+            let input_str = format!("{{\"{}\":\"{}\"}}", key, value);
+
+            let input = json::parse(input_str.as_str()).unwrap();
+            let result = extract_date(&input).unwrap();
+
+            let result_key = result.1;
+            let result_value = result.0.to_rfc3339().replace("+00:00", ".000Z");
+            assert_eq!(result_key, key);
+            assert_eq!(result_value, String::from(value));
+        }
+    }
+
+    #[test]
     fn prints_zeroes_on_missing_timestamp() {
-        let input_str ="{\"message\":\"hi\",\"severity\":\"info\"}";
+        let input_str = r#"{"message":"hi","severity":"info"}"#;
         let input_json: json::JsonValue = json::parse(input_str).unwrap();
         let expected = String::from("00:00:000.000 [INFO ] hi");
-        std::env::set_var("CLICOLOR", "0");
-        let output = format_line(input_json);
-        std::env::remove_var("CLICOLOR");
+        let output = format_line(input_json, false);
         assert_eq!(output, expected);
     }
 }
