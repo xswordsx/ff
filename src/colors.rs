@@ -4,46 +4,39 @@
 /// Takes into account the `CLICOLOR`, `CLICOLOR_FORCE` and
 /// `NO_COLOR` variables.
 ///
-pub fn colorize(s: &str, color: &str) -> std::string::String {
-    if !should_color() {
-        return String::from(s);
-    }
+pub fn colorize(s: &str, color: Color) -> std::string::String {
     match color {
-        "black" => return black(s),
-        "red" => return red(s),
-        "green" => return green(s),
-        "yellow" => return yellow(s),
-        "blue" => return blue(s),
-        "magenta" => return magenta(s),
-        "cyan" => return cyan(s),
-        "white" => return white(s),
-        "gray" => return gray(s),
+        Color::None => return String::from(s),
 
-        "bold" => return bold(s),
+        Color::Black => return black(s),
+        Color::Red => return red(s),
+        Color::Green => return green(s),
+        Color::Yellow => return yellow(s),
+        Color::Blue => return blue(s),
+        Color::Magenta => return magenta(s),
+        Color::Cyan => return cyan(s),
+        Color::White => return white(s),
+        Color::Gray => return gray(s),
 
-        _ => return String::from(s),
+        Color::Bold => return bold(s),
     }
 }
 
-// Implements https://bixense.com/clicolors/
-fn clicolor() -> bool {
-    let color_var = std::env::var("CLICOLOR").unwrap_or(String::from("1"));
-    let force_color = std::env::var("CLICOLOR_FORCE").unwrap_or(String::from("0"));
+#[allow(dead_code)]
+pub enum Color {
+    None,
 
-    if (color_var != "0" && atty::is(atty::Stream::Stdout)) || force_color != "0" {
-        return true;
-    }
-    return false;
-}
+    Black,
+    Red,
+    Green,
+    Yellow,
+    Blue,
+    Magenta,
+    Cyan,
+    White,
 
-fn should_color() -> bool {
-    match std::env::var("NO_COLOR") {
-        // If set (regardless to what) -> don't color output.
-        Ok(_) => return false,
-
-        // Var is not present, bad unicode
-        Err(_) => return clicolor(),
-    }
+    Gray,
+    Bold,
 }
 
 // Foreground colors   // Background colors
@@ -90,86 +83,21 @@ fn bold(s: &str) -> std::string::String {
 
 #[cfg(test)]
 mod test {
-    use super::*;
-
-    /// run_test is a super-minimal wrapper to let the dev
-    /// run setup and teardown steps.
-    fn run_test<T>(setup: fn() -> (), test: T, teardown: fn() -> ()) -> ()
-    where
-        T: FnOnce() -> () + std::panic::UnwindSafe,
-    {
-        setup();
-        let result = std::panic::catch_unwind(|| test());
-        teardown();
-        assert!(result.is_ok())
-    }
-
-    #[test]
-    #[ignore]
-    fn color_on_clicolor() {
-        run_test(
-            || std::env::set_var("CLICOLOR", "1"),
-            || assert_eq!(colorize("test", "blue"), "\u{1b}[34mtest\u{1b}[0m"),
-            || std::env::remove_var("CLICOLOR"),
-        );
-
-        run_test(
-            || std::env::set_var("CLICOLOR", "0"),
-            || assert_eq!(colorize("test", "blue"), "test"),
-            || std::env::remove_var("CLICOLOR"),
-        );
-    }
-
-    #[test]
-    fn do_not_color_when_nocolor_set() {
-        run_test(
-            || std::env::set_var("NO_COLOR", "0"),
-            || assert_eq!(colorize("test", "green"), "test"),
-            || std::env::remove_var("NO_COLOR"),
-        );
-
-        run_test(
-            || std::env::set_var("NO_COLOR", "1"),
-            || assert_eq!(colorize("test", "green"), "test"),
-            || std::env::remove_var("NO_COLOR"),
-        );
-    }
-
-    #[test]
-    fn color_on_clicolor_force() {
-        run_test(
-            || std::env::set_var("CLICOLOR_FORCE", "1"),
-            || assert_eq!(colorize("test", "white"), "\u{1b}[37mtest\u{1b}[0m"),
-            || std::env::remove_var("CLICOLOR_FORCE"),
-        );
-    }
-
+    use super::{Color,colorize};
     #[test]
     #[rustfmt::skip::macros(assert_eq)]
-    fn general_usecase() {
-        run_test(
-            // Forcing color output in non-tty environment
-            || std::env::set_var("CLICOLOR_FORCE", "1"),
-            || {
-                assert_eq!(colorize("Lorem ipsum", "black"),   "\x1B[30mLorem ipsum\x1B[0m");
-                assert_eq!(colorize("Lorem ipsum", "red"),     "\x1B[31mLorem ipsum\x1B[0m");
-                assert_eq!(colorize("Lorem ipsum", "green"),   "\x1B[32mLorem ipsum\x1B[0m");
-                assert_eq!(colorize("Lorem ipsum", "yellow"),  "\x1B[33mLorem ipsum\x1B[0m");
-                assert_eq!(colorize("Lorem ipsum", "blue"),    "\x1B[34mLorem ipsum\x1B[0m");
-                assert_eq!(colorize("Lorem ipsum", "magenta"), "\x1B[35mLorem ipsum\x1B[0m");
-                assert_eq!(colorize("Lorem ipsum", "cyan"),    "\x1B[36mLorem ipsum\x1B[0m");
-                assert_eq!(colorize("Lorem ipsum", "white"),   "\x1B[37mLorem ipsum\x1B[0m");
+    fn test_proper_colorization() {
+        assert_eq!(colorize("Lorem ipsum", Color::Black),   "\x1B[30mLorem ipsum\x1B[0m");
+        assert_eq!(colorize("Lorem ipsum", Color::Red),     "\x1B[31mLorem ipsum\x1B[0m");
+        assert_eq!(colorize("Lorem ipsum", Color::Green),   "\x1B[32mLorem ipsum\x1B[0m");
+        assert_eq!(colorize("Lorem ipsum", Color::Yellow),  "\x1B[33mLorem ipsum\x1B[0m");
+        assert_eq!(colorize("Lorem ipsum", Color::Blue),    "\x1B[34mLorem ipsum\x1B[0m");
+        assert_eq!(colorize("Lorem ipsum", Color::Magenta), "\x1B[35mLorem ipsum\x1B[0m");
+        assert_eq!(colorize("Lorem ipsum", Color::Cyan),    "\x1B[36mLorem ipsum\x1B[0m");
+        assert_eq!(colorize("Lorem ipsum", Color::White),   "\x1B[37mLorem ipsum\x1B[0m");
 
-                assert_eq!(colorize("Lorem ipsum", "bold"), "\x1B[97mLorem ipsum\x1B[0m");
+        assert_eq!(colorize("Lorem ipsum", Color::Bold), "\x1B[97mLorem ipsum\x1B[0m");
 
-                assert_eq!(colorize("Lorem ipsum", "gray"), "\x1B[90mLorem ipsum\x1B[0m");
-            },
-            || std::env::remove_var("CLICOLOR_FORCE"),
-        );
-    }
-
-    #[test]
-    fn unknown_color() {
-        assert_eq!(colorize("test", "blood_of_satan"), "test");
+        assert_eq!(colorize("Lorem ipsum", Color::Gray), "\x1B[90mLorem ipsum\x1B[0m");
     }
 }
