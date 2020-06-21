@@ -23,7 +23,9 @@ pub fn color_from_env() -> bool {
 #[cfg(test)]
 mod test {
     use super::color_from_env;
+
     #[test]
+    #[ignore]
     fn color_on_clicolor() {
         std::env::set_var("CLICOLOR", "1");
         assert_eq!(color_from_env(), true);
