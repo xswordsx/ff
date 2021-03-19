@@ -3,16 +3,10 @@ mod utils;
 
 use chrono::{DateTime, FixedOffset};
 use getopts;
-use std::io::{self, BufRead};
+use std::io::{self, BufRead, Write};
 use yaml_rust::{YamlEmitter, YamlLoader};
 
 fn print_version(program: &str, as_json: bool) {
-    let short_name = std::path::Path::new(program)
-        .file_name()
-        .unwrap()
-        .to_str()
-        .unwrap();
-
     let fallback_version = format!("{}-dev", env!("CARGO_PKG_VERSION"));
     let version = option_env!("VERSION").unwrap_or(fallback_version.as_str());
     let hash = option_env!("HASH").unwrap_or("0000000");
@@ -26,14 +20,14 @@ fn print_version(program: &str, as_json: bool) {
             \"hash\":\"{}\",\
             \"build_at\":\"{}\"\
             }}",
-            short_name, version, hash, build_at,
+            program, version, hash, build_at,
         );
         return;
     }
 
     println!(
         "{} version {} build {} built at {}",
-        short_name, version, hash, build_at,
+        program, version, hash, build_at,
     );
     return;
 }
@@ -57,7 +51,7 @@ fn extract_date(
     };
 }
 
-fn format_line(mut obj: json::JsonValue, color_output: bool) -> String {
+fn format_line(mut obj: json::JsonValue, _mode: &Output, color_output: bool) -> String {
     let mut result = String::default();
 
     let colorizer: fn(&str, colors::Color) -> String = match color_output {
@@ -68,7 +62,7 @@ fn format_line(mut obj: json::JsonValue, color_output: bool) -> String {
     // TODO: Implement --short timestamp
     match extract_date(&obj) {
         Ok(t) => {
-            result.push_str(format!("{}", t.0.format("%H:%M:%S2%.3f")).as_str());
+            result.push_str(format!("{}", t.0.format("%H:%M:%S%.3f")).as_str());
             obj.remove(t.1);
         }
         Err(_) => result.push_str("00:00:000.000"),
@@ -131,19 +125,53 @@ fn severity_fmt(s: &str, colorizer: fn(&str, colors::Color) -> String) -> String
 }
 
 fn print_usage(program: &str, opts: getopts::Options) {
-    let short_name = std::path::Path::new(program)
-        .file_name()
-        .unwrap()
-        .to_str()
-        .unwrap();
-    let brief = format!("Usage: {} [options]", short_name);
+    let brief = format!("Usage: {} [options]", program);
     print!("{}", opts.usage(&brief));
 }
 
-fn main() {
-    let args: Vec<String> = std::env::args().collect();
-    let program = args[0].clone();
+#[derive(Debug)]
+enum Output {
+    Unknown,
+    Normal,
+    Short,
+}
 
+#[derive(Debug)]
+struct Args {
+    program_name: std::string::String,
+    output: Output,
+    help: bool,
+    json: bool,
+    color: bool,
+    version: bool,
+}
+
+type ArgsResult = Result<Args, std::string::String>;
+
+fn parse_args(opts: &getopts::Options) -> ArgsResult {
+    let cmd_args: Vec<String> = std::env::args().collect();
+    let matches = opts.parse(&cmd_args[1..]).unwrap();
+
+    Ok(Args{
+        program_name: std::string::String::from(std::path::Path::new(&cmd_args[0])
+            .file_name()
+            .unwrap()
+            .to_str()
+            .unwrap()),
+        output: match matches.opt_default("output", "normal") {
+            Some(x) if x == "normal" => Output::Normal,
+            Some(x) if x == "short" => Output::Short,
+            Some(x) => return Err(format!("unsupported output mode '{}'", x)),
+            _ => Output::Unknown,
+        },
+        json: matches.opt_present("json"),
+        help: matches.opt_present("help"),
+        version: matches.opt_present("version"),
+        color: utils::color_from_env(),
+    })
+}
+
+fn main() {
     let mut opts = getopts::Options::new();
     opts.optopt("o", "output", "set output mode", "([normal]|short)");
     opts.optflag(
@@ -153,41 +181,40 @@ fn main() {
     );
     opts.optflag("", "json", "output it as JSON (for --version flag only)");
     opts.optflag("h", "help", "print this help menu");
-    let matches = match opts.parse(&args[1..]) {
-        Ok(m) => m,
-        Err(f) => panic!(f.to_string()),
-    };
-    if matches.opt_present("help") {
-        print_usage(&program, opts);
-        return;
-    }
-    if matches.opt_present("version") {
-        print_version(&program, matches.opt_present("json"));
-        return;
-    }
-    let output_mode: String;
-    if matches.opt_present("output") {
-        output_mode = match matches.opt_str("output") {
-            Some(x) => x,
-            None => String::from("normal"),
-        };
 
-        if output_mode != "normal" && output_mode != "short" {
-            println!("unsupported output mode '{}'", output_mode);
-            print_usage(&program, opts);
+    let args = match parse_args(&opts) {
+        Ok(val) => val,
+        Err(x) => {
+            eprintln!("{}", x);
+            print_usage("ff", opts);
             std::process::exit(1);
         }
+    };
+
+    if args.help {
+        print_usage(args.program_name.as_str(), opts);
+        return;
     }
-    let color_output = utils::color_from_env();
-    let stdin = io::stdin();
-    for line in stdin.lock().lines() {
+
+    if args.version {
+        print_version(args.program_name.as_str(), args.json);
+        return;
+    }
+
+    // Acquiring a lock on stdout is faster than invoking
+    // println! for each line.
+    let stdout = io::stdout();
+    let mut handle = stdout.lock();
+    for line in io::stdin().lock().lines() {
         let raw_line = line.unwrap();
-        let parsed_line = json::parse(&raw_line).unwrap_or(json::Null);
-        if parsed_line == json::Null {
-            println!("{}", &raw_line);
-            continue;
-        }
-        println!("{}", format_line(parsed_line, color_output));
+        let _ = match json::parse(&raw_line) {
+            Ok(val) if val.is_object() => {
+                writeln!(handle, "{}", format_line(val, &args.output, args.color))
+            }
+            _ => {
+                writeln!(handle, "{}", &raw_line)
+            }
+        };
     }
 }
 
@@ -221,7 +248,7 @@ mod test {
         let input_str = r#"{"message":"hi","severity":"info"}"#;
         let input_json: json::JsonValue = json::parse(input_str).unwrap();
         let expected = String::from("00:00:000.000 [INFO ] hi");
-        let output = format_line(input_json, false);
+        let output = format_line(input_json, &Output::Normal, false);
         assert_eq!(output, expected);
     }
 }

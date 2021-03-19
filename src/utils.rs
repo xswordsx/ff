@@ -25,7 +25,7 @@ mod test {
     use super::color_from_env;
 
     #[test]
-    #[ignore]
+    #[ignore = "not working in CI envs"]
     fn color_on_clicolor() {
         std::env::set_var("CLICOLOR", "1");
         assert_eq!(color_from_env(), true);
