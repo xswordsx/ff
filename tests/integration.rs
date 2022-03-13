@@ -94,6 +94,7 @@ fn mixed_lines_input() {
         "16:15:24.059 [DEBUG] First line - JSON",
         "This is just a plain-text line",
         "00:00:000.000 [UNKNOWN] Second line",
+        "" // Command prints new-lines
     ].join("\n");
 
     let mut cmd = Command::cargo_bin("ff").unwrap();
