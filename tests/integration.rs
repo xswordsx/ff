@@ -22,8 +22,11 @@ test_plain_type!(string, "hello");
 
 #[test]
 fn empty_lines() {
-    let mut cmd = Command::cargo_bin("ff").unwrap();
-    cmd.write_stdin("").assert().success().stdout("");
+    Command::cargo_bin("ff")
+        .unwrap()
+        .write_stdin("\n")
+        .assert()
+        .stdout("\n");
 }
 
 #[test]
@@ -39,12 +42,11 @@ fn sanity_check_no_color() {
 
     let expected_output = "14:15:42.000 [INFO ] Hello from stdout\n  status_code: 200\n";
 
-    let mut cmd = Command::cargo_bin("ff").unwrap();
-    let cmd_assert = cmd.write_stdin(input.replace("\n", "")).assert();
-    let output = cmd_assert.get_output().clone();
-    let output_str = String::from_utf8(output.stdout);
-
-    assert_eq!(output_str.unwrap(), expected_output);
+    Command::cargo_bin("ff")
+        .unwrap()
+        .write_stdin(input.replace("\n", ""))
+        .assert()
+        .stdout(expected_output);
 }
 
 #[test]
@@ -58,7 +60,8 @@ fn sanity_check_color() {
             "nested_2": "correct!"
         }
     }
-    "#.replace("\n", "");
+    "#
+    .replace("\n", "");
 
     let mut expected_output = String::new();
     expected_output.push_str("22:40:00.123 [\x1B[31mERROR\x1B[0m] Hello from color-land");
@@ -67,15 +70,12 @@ fn sanity_check_color() {
     expected_output.push_str("    nested_2: correct!\x1B[0m");
     expected_output.push_str("\n");
 
-    let mut cmd = Command::cargo_bin("ff").unwrap();
-    let cmd_assert = cmd
+    Command::cargo_bin("ff")
+        .unwrap()
         .env("CLICOLOR_FORCE", "1")
         .write_stdin(input)
-        .assert();
-    let output = cmd_assert.get_output().clone();
-    let output_str = String::from_utf8(output.stdout);
-
-    assert_eq!(output_str.unwrap(), expected_output);
+        .assert()
+        .stdout(expected_output);
 }
 
 #[test]
@@ -85,24 +85,24 @@ fn mixed_lines_input() {
             "time": "2022-03-13T16:15:24.059Z",
             "message": "First line - JSON",
             "severity": "debug"
-        }"#.replace("\n", ""),
+        }"#
+        .replace("\n", ""),
         String::from("This is just a plain-text line"),
         String::from(r#"{"message":"Second line"}"#),
-    ].join("\n");
+    ]
+    .join("\n");
 
     let expected_output = [
         "16:15:24.059 [DEBUG] First line - JSON",
         "This is just a plain-text line",
         "00:00:000.000 [UNKNOWN] Second line",
-        "" // Command prints new-lines
-    ].join("\n");
+        "", // Command ends each line with a newline - accomodate the last one.
+    ]
+    .join("\n");
 
-    let mut cmd = Command::cargo_bin("ff").unwrap();
-    let cmd_assert = cmd
+    Command::cargo_bin("ff")
+        .unwrap()
         .write_stdin(input)
-        .assert().success();
-    let output = cmd_assert.get_output().clone();
-    let output_str = String::from_utf8(output.stdout);
-
-    assert_eq!(output_str.unwrap(), expected_output);
+        .assert()
+        .stdout(expected_output);
 }
