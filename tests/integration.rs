@@ -58,12 +58,10 @@ fn sanity_check_color() {
             "nested_2": "correct!"
         }
     }
-    "#;
+    "#.replace("\n", "");
 
     let mut expected_output = String::new();
-    expected_output.push_str(
-        "22:40:00.123 [\x1B[31mERROR\x1B[0m] Hello from color-land",
-    );
+    expected_output.push_str("22:40:00.123 [\x1B[31mERROR\x1B[0m] Hello from color-land");
     expected_output.push_str("\x1B[90m\n");
     expected_output.push_str("  nested_1:\n");
     expected_output.push_str("    nested_2: correct!\x1B[0m");
@@ -72,8 +70,36 @@ fn sanity_check_color() {
     let mut cmd = Command::cargo_bin("ff").unwrap();
     let cmd_assert = cmd
         .env("CLICOLOR_FORCE", "1")
-        .write_stdin(input.replace("\n", ""))
+        .write_stdin(input)
         .assert();
+    let output = cmd_assert.get_output().clone();
+    let output_str = String::from_utf8(output.stdout);
+
+    assert_eq!(output_str.unwrap(), expected_output);
+}
+
+#[test]
+fn mixed_lines_input() {
+    let input = [
+        r#"{
+            "time": "2022-03-13T16:15:24.059Z",
+            "message": "First line - JSON",
+            "severity": "debug"
+        }"#.replace("\n", ""),
+        String::from("This is just a plain-text line"),
+        String::from(r#"{"message":"Second line"}"#),
+    ].join("\n");
+
+    let expected_output = [
+        "16:15:24.059 [DEBUG] First line - JSON",
+        "This is just a plain-text line",
+        "00:00:000.000 [UNKNOWN] Second line",
+    ].join("\n");
+
+    let mut cmd = Command::cargo_bin("ff").unwrap();
+    let cmd_assert = cmd
+        .write_stdin(input)
+        .assert().success();
     let output = cmd_assert.get_output().clone();
     let output_str = String::from_utf8(output.stdout);
 
