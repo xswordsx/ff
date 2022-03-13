@@ -106,3 +106,23 @@ fn mixed_lines_input() {
         .assert()
         .stdout(expected_output);
 }
+
+#[test]
+fn component_extraction() {
+    let input = String::from(
+        r#"{
+            "time": "2022-03-13T16:15:24.059Z",
+            "message": "Some input line",
+            "component": "COMPONENT",
+            "severity": "debug"
+        }"#,
+    )
+    .replace("\n", "");
+    let expected_output = "16:15:24.059 [DEBUG] COMPONENT Some input line\n";
+
+    Command::cargo_bin("ff")
+        .unwrap()
+        .write_stdin(input + "\n")
+        .assert()
+        .stdout(expected_output);
+}
