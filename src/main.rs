@@ -34,21 +34,33 @@ fn print_version(program: &str, as_json: bool) {
 
 /// Returns a tuple of `<value, key>` with the date from a
 /// JSON object.
-fn extract_date(
-    obj: &json::JsonValue,
-) -> Result<(DateTime<FixedOffset>, &'static str), &'static str> {
+fn extract_date(obj: &json::JsonValue) -> Option<(DateTime<FixedOffset>, &'static str)> {
     let possible_keys = ["ts", "time", "timestamp"];
 
     let prop_key = possible_keys.iter().find(|x| obj.has_key(x));
     if prop_key.is_none() {
-        return Err("no time field provided");
+        return None;
     }
     let prop = prop_key.unwrap();
     let ts = obj[*prop].as_str().unwrap();
     match DateTime::parse_from_rfc3339(ts) {
-        Ok(v) => return Ok((v, prop)),
-        Err(_) => return Err("could not parse time"),
+        Ok(v) => return Some((v, prop)),
+        Err(_) => return None,
     };
+}
+
+/// Returns a (value, key) pair of the object's severity.
+fn extract_severity(obj: &json::JsonValue) -> Option<(&str, &'static str)> {
+    let possible_keys = ["severity", "level", "lvl"];
+
+    let prop_key = possible_keys.iter().find(|x| obj.has_key(x));
+
+    if prop_key.is_none() {
+        return None;
+    }
+    let prop = prop_key.unwrap();
+    let lvl = obj[*prop].as_str().clone();
+    Some((lvl?, prop))
 }
 
 fn format_line(mut obj: json::JsonValue, _mode: &Output, color_output: bool) -> String {
@@ -61,20 +73,21 @@ fn format_line(mut obj: json::JsonValue, _mode: &Output, color_output: bool) -> 
 
     // TODO: Implement --short timestamp
     match extract_date(&obj) {
-        Ok(t) => {
+        Some(t) => {
             result.push_str(format!("{}", t.0.format("%H:%M:%S%.3f")).as_str());
             obj.remove(t.1);
         }
-        Err(_) => result.push_str("00:00:000.000"),
+        None => result.push_str("00:00:000.000"),
     };
 
-    if obj.has_key("severity") {
-        let svrty = severity_fmt(obj["severity"].as_str().unwrap(), colorizer);
-        result.push(' ');
-        result.push_str(svrty.as_str());
-    } else {
-        result.push_str(" [UNKNOWN]");
-    }
+    match extract_severity(&obj) {
+        Some(t) => {
+            result.push(' ');
+            result.push_str(severity_fmt(t.0, colorizer).as_str());
+            obj.remove(t.1);
+        }
+        None => result.push_str(" [UNKNOWN]"),
+    };
 
     if obj.has_key("component") {
         let cmpt = obj["component"].as_str().unwrap();
@@ -89,7 +102,6 @@ fn format_line(mut obj: json::JsonValue, _mode: &Output, color_output: bool) -> 
         result.push_str(" <no message>");
     }
 
-    obj.remove("severity");
     obj.remove("message");
     obj.remove("component");
 
@@ -152,12 +164,12 @@ fn parse_args(opts: &getopts::Options) -> ArgsResult {
     let cmd_args: Vec<String> = std::env::args().collect();
     let matches = opts.parse(&cmd_args[1..]).unwrap();
 
-    Ok(Args{
-        program_name: std::string::String::from(std::path::Path::new(&cmd_args[0])
-            .file_name()
-            .unwrap()
-            .to_str()
-            .unwrap()),
+    Ok(Args {
+        program_name: std::string::String::from(
+            std::path::Path::new(&cmd_args[0])
+                .file_name().unwrap()
+                .to_str().unwrap(),
+        ),
         output: match matches.opt_default("output", "normal") {
             Some(x) if x == "normal" => Output::Normal,
             Some(x) if x == "short" => Output::Short,
