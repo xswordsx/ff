@@ -49,41 +49,29 @@ pub enum Color {
 // 36 Cyan             // 46 Cyan
 // 37 White            // 47 White
 
-fn black(s: &str) -> std::string::String {
-    return format!("\x1B[30m{}\x1B[0m", s);
-}
-fn red(s: &str) -> std::string::String {
-    return format!("\x1B[31m{}\x1B[0m", s);
-}
-fn green(s: &str) -> std::string::String {
-    return format!("\x1B[32m{}\x1B[0m", s);
-}
-fn yellow(s: &str) -> std::string::String {
-    return format!("\x1B[33m{}\x1B[0m", s);
-}
-fn blue(s: &str) -> std::string::String {
-    return format!("\x1B[34m{}\x1B[0m", s);
-}
-fn magenta(s: &str) -> std::string::String {
-    return format!("\x1B[35m{}\x1B[0m", s);
-}
-fn cyan(s: &str) -> std::string::String {
-    return format!("\x1B[36m{}\x1B[0m", s);
-}
-fn white(s: &str) -> std::string::String {
-    return format!("\x1B[37m{}\x1B[0m", s);
+macro_rules! color_fn {
+    ($name: ident, $ansi_color: literal) => {
+        /// Colors `s` in the named color (ANSI).
+        fn $name(s: &str) -> std::string::String {
+            format!(concat!("\x1B[", stringify!($ansi_color), "m{}\x1B[0m"), s)
+        }
+    };
 }
 
-fn gray(s: &str) -> std::string::String {
-    return format!("\x1B[90m{}\x1B[0m", s);
-}
-fn bold(s: &str) -> std::string::String {
-    return format!("\x1B[97m{}\x1B[0m", s);
-}
+color_fn!(black, 30);
+color_fn!(red, 31);
+color_fn!(green, 32);
+color_fn!(yellow, 33);
+color_fn!(blue, 34);
+color_fn!(magenta, 35);
+color_fn!(cyan, 36);
+color_fn!(white, 37);
+color_fn!(gray, 90);
+color_fn!(bold, 97);
 
 #[cfg(test)]
 mod test {
-    use super::{Color,colorize};
+    use super::{colorize, Color};
     #[test]
     #[rustfmt::skip::macros(assert_eq)]
     fn test_proper_colorization() {
